@@ -94,6 +94,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	//glDepthMask(GL_FALSE);
 	glDepthFunc(GL_LESS);
+	glClearDepth(1.0f);
+
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))

@@ -59,7 +59,7 @@ void main()
 {
 	//FragColor = mix(texture(texture1, TexCoord), texture(texture2, vec2(TexCoord.x, TexCoord.y)), 0.2);
 	FragColor = texture(texture1, TexCoord);
-
+	//FragColor = vec4(vec3(gl_FragCoord.z), 1.0);
 	//float depth = LinearizeDepth(gl_FragCoord.z) / far; // 为了演示除以 far
 	//FragColor = vec4(vec3(depth), 1.0);
 }

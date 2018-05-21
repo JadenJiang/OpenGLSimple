@@ -66,6 +66,18 @@ void main()
 )";
 
 
+const char fragmentShaderSource_color[] = R"(
+#version 330 core
+out vec4 FragColor;
+
+void main()
+{
+	FragColor = vec4(0.98, 0.93, 0.09, 1.0);
+}
+)";
+
+
+
 
 
 float cubeVertices[] = {
