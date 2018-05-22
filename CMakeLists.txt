@@ -58,6 +58,7 @@ set(PROJECTS
     camera
     depth_testing
     stencil_testing
+    blending
 )
 
 
