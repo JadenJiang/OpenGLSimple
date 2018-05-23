@@ -24,6 +24,7 @@ layout(location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 
+//uniform mat4 transform;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -56,7 +57,11 @@ float LinearizeDepth(float depth)
 
 void main()
 {
+	//FragColor = mix(texture(texture1, TexCoord), texture(texture2, vec2(TexCoord.x, TexCoord.y)), 0.2);
 	FragColor = texture(texture1, TexCoord);
+	//FragColor = vec4(vec3(gl_FragCoord.z), 1.0);
+	//float depth = LinearizeDepth(gl_FragCoord.z) / far; // 为了演示除以 far
+	//FragColor = vec4(vec3(depth), 1.0);
 }
 )";
 
@@ -116,18 +121,6 @@ float planeVertices[] = {
 	5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
 	-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
 	5.0f, -0.5f, -5.0f,  2.0f, 2.0f
-};
-
-
-float transparentVertices[] = {
-	// positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
-	0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-	0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
-	1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-
-	0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
-	1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
-	1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 };
 
 #endif // !SHADERS_H_

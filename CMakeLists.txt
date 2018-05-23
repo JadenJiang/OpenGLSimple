@@ -59,6 +59,8 @@ set(PROJECTS
     depth_testing
     stencil_testing
     blending
+    face_culling
+    framebuffers
 )
 
 

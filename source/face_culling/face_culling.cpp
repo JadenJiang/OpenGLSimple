@@ -1,14 +1,3 @@
-/*
-要想让混合在多个物体上工作，我们需要最先绘制最远的物体，最后绘制最近的物体。
-普通不需要混合的物体仍然可以使用深度缓冲正常绘制，所以它们不需要排序。
-但我们仍要保证它们在绘制（排序的）透明物体之前已经绘制完毕了。当绘制一个有不透明和透明物体的场景的时候，大体的原则如下：
-
-1、先绘制所有不透明的物体。
-2、对所有透明的物体排序。
-3、按顺序绘制所有透明的物体。
-排序透明物体的一种方法是，从观察者视角获取物体的距离。这可以通过计算摄像机位置向量和物体的位置向量之间的距离所获得。
-*/
-
 #include "my_shaders.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -128,9 +117,9 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);//先在颜色缓冲中的为目标颜色向量、目标颜色因子值。
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
+	glEnable(GL_CULL_FACE);
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -151,9 +140,6 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
- 		//glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
- 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
 		ourShader.use();
 		glm::mat4 model, view, projection;
@@ -161,8 +147,6 @@ int main()
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
-
-
 
 
 		//cube
@@ -181,16 +165,14 @@ int main()
 
 
 		// floor
+		glCullFace(GL_FRONT);
 		glBindVertexArray(planeVAO);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		ourShader.setMat4("model", glm::mat4());
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
-
-		//glBlendColor(1.0f, 0.0f, 0.0f, 0.0f);
-		//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glCullFace(GL_BACK);
 
 
 		// vegetation

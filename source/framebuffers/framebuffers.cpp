@@ -1,14 +1,3 @@
-/*
-要想让混合在多个物体上工作，我们需要最先绘制最远的物体，最后绘制最近的物体。
-普通不需要混合的物体仍然可以使用深度缓冲正常绘制，所以它们不需要排序。
-但我们仍要保证它们在绘制（排序的）透明物体之前已经绘制完毕了。当绘制一个有不透明和透明物体的场景的时候，大体的原则如下：
-
-1、先绘制所有不透明的物体。
-2、对所有透明的物体排序。
-3、按顺序绘制所有透明的物体。
-排序透明物体的一种方法是，从观察者视角获取物体的距离。这可以通过计算摄像机位置向量和物体的位置向量之间的距离所获得。
-*/
-
 #include "my_shaders.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -60,7 +49,8 @@ int main()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-	
+	glEnable(GL_DEPTH_TEST);
+
 
 	// build and compile our shader zprogram
 	// ------------------------------------
@@ -94,66 +84,52 @@ int main()
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 
-	GLuint transparentVAO, transparentVBO;
-	glGenVertexArrays(1, &transparentVAO);
-	glGenBuffers(1, &transparentVBO);
-	glBindVertexArray(transparentVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glBindVertexArray(0);
+	GLuint framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-	GLuint cubeTexture = loadTexture(FileSystem::getPath("resources/textures/marble.jpg").c_str());
-	//GLuint cubeTexture = loadTexture(R"(F:\videoFile\Lena.jpg)");
-	GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); //loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
-	GLuint transparentTexture = loadTexture(FileSystem::getPath("resources/textures/window.png").c_str());
+	GLuint texColorBuffer;
+	glGenTextures(1, &texColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+
+	GLuint rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	vector<glm::vec3> vegetation
-	{
-		glm::vec3(-1.5f, 0.0f, -0.48f + 0.5),
- 		glm::vec3(1.5f, 0.0f, 0.51f + 0.5),
- 		glm::vec3(0.0f, 0.0f, 0.7f),
- 		glm::vec3(-0.3f, 0.0f, -2.3f),
- 		glm::vec3(0.5f, 0.0f, -0.6f)
-	};
-
+	GLuint cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
+	GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+	//GLuint floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
 
 	ourShader.use();
 	ourShader.setInt("texture1", 0);	//每个着色器采样器属于哪个纹理单元
 
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);//先在颜色缓冲中的为目标颜色向量、目标颜色因子值。
-	glBlendEquation(GL_FUNC_ADD);
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
 
 		processInput(window);
-		// sort the transparent windows before rendering
-		// ---------------------------------------------
-		std::map<float, glm::vec3> sorted;
-		for (unsigned int i = 0; i < vegetation.size(); i++)
-		{
-			float distance = glm::length(camera.Position - vegetation[i]);
-			sorted[distance] = vegetation[i];
-		}
 
 		// render
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
- 		//glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
- 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
 		ourShader.use();
 		glm::mat4 model, view, projection;
@@ -162,14 +138,9 @@ int main()
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
-
-
-
-		//cube
 		glBindVertexArray(VAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, cubeTexture);
-		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(-1.0f, 0.0f, -1.0f));
 		ourShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -179,31 +150,11 @@ int main()
 		ourShader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
-		// floor
 		glBindVertexArray(planeVAO);
 		glBindTexture(GL_TEXTURE_2D, floorTexture);
 		ourShader.setMat4("model", glm::mat4());
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-
-
-		//glBlendColor(1.0f, 0.0f, 0.0f, 0.0f);
-		//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-		// vegetation
-		glBindVertexArray(transparentVAO);
-		glBindTexture(GL_TEXTURE_2D, transparentTexture);
-		for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
-		{
-			model = glm::mat4();
-			model = glm::translate(model, it->second);
-			ourShader.setMat4("model", model);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -215,6 +166,8 @@ int main()
 	// ------------------------------------------------------------------------
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+
+	glDeleteFramebuffers(1, &framebuffer);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
@@ -282,7 +235,7 @@ unsigned int loadTexture(const char *path) {
 	GLuint textureID  = -1;
 	glGenTextures(1, &textureID);
 	int width, height, nrComponents;
-	//stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true);
 	uint8_t *data = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (data) {
 		GLenum format;
@@ -297,8 +250,8 @@ unsigned int loadTexture(const char *path) {
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINES);
 		stbi_image_free(data);
