@@ -57,15 +57,39 @@ float LinearizeDepth(float depth)
 
 void main()
 {
-	//FragColor = mix(texture(texture1, TexCoord), texture(texture2, vec2(TexCoord.x, TexCoord.y)), 0.2);
 	FragColor = texture(texture1, TexCoord);
-	//FragColor = vec4(vec3(gl_FragCoord.z), 1.0);
-	//float depth = LinearizeDepth(gl_FragCoord.z) / far; // 为了演示除以 far
-	//FragColor = vec4(vec3(depth), 1.0);
 }
 )";
 
 
+static const char vertexShaderSource_Rect[] = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+layout (location = 1) in vec2 aTexCoords;
+
+out vec2 TexCoords;
+
+void main()
+{
+    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+    TexCoords = aTexCoords;
+}
+
+)";
+
+
+const char fragmentShaderSource_Rect[] = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 TexCoords;
+uniform sampler2D screenTexture;
+
+void main()
+{ 
+    FragColor = texture(screenTexture, TexCoords);
+}
+
+)";
 
 
 float cubeVertices[] = {
@@ -121,6 +145,18 @@ float planeVertices[] = {
 	5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
 	-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
 	5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+};
+
+
+float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+                         // positions   // texCoords
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    -1.0f, -1.0f,  0.0f, 0.0f,
+    1.0f, -1.0f,  1.0f, 0.0f,
+
+    -1.0f,  1.0f,  0.0f, 1.0f,
+    1.0f, -1.0f,  1.0f, 0.0f,
+    1.0f,  1.0f,  1.0f, 1.0f
 };
 
 #endif // !SHADERS_H_

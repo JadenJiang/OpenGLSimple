@@ -47,7 +47,7 @@ include_directories(${CMAKE_INCLUDE_PATH})
 link_directories(${CMAKE_LIBRARY_PATH})
 
 
-list(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+add_compile_options(-std=c++11)
   
 
 set(PROJECTS

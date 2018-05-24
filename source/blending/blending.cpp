@@ -108,7 +108,8 @@ int main()
 
 	GLuint cubeTexture = loadTexture(FileSystem::getPath("resources/textures/marble.jpg").c_str());
 	//GLuint cubeTexture = loadTexture(R"(F:\videoFile\Lena.jpg)");
-	GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); //loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
+	//GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+    GLuint floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
 	GLuint transparentTexture = loadTexture(FileSystem::getPath("resources/textures/window.png").c_str());
 
 
@@ -128,7 +129,7 @@ int main()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
-	glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
+	//glBlendColor(0.0f, 0.0f, 0.0f, 0.0f);  //default value
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);//先在颜色缓冲中的为目标颜色向量、目标颜色因子值。
 	glBlendEquation(GL_FUNC_ADD);
 	// render loop
@@ -148,12 +149,10 @@ int main()
 
 		// render
 		// ------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
- 		//glBlendColor(1.0f, 0.0f, 0.0f, 1.0f);
- 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+ 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		ourShader.use();
 		glm::mat4 model, view, projection;
@@ -161,9 +160,6 @@ int main()
 		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
-
-
-
 
 		//cube
 		glBindVertexArray(VAO);
@@ -188,10 +184,9 @@ int main()
 		glBindVertexArray(0);
 
 
-		//glBlendColor(1.0f, 0.0f, 0.0f, 0.0f);
-		//glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+        glBlendColor(0.7f, 1.76f, 0.9f, 0.2f);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        //glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
 
 		// vegetation
 		glBindVertexArray(transparentVAO);
