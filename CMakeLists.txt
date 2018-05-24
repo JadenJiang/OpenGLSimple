@@ -61,6 +61,7 @@ set(PROJECTS
     blending
     face_culling
     framebuffers
+    glsl_uniform
 )
 
 

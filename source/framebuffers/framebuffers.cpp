@@ -13,8 +13,6 @@ const unsigned int SCR_HEIGHT = 720;
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 
-
-
 int main()
 {
 	// glfw: initialize and configure
@@ -27,9 +25,7 @@ int main()
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
-
-														 // glfw window creation
-														 // --------------------
+	// glfw window creation
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
@@ -101,24 +97,33 @@ int main()
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
+	//添加纹理附件-----颜色纹理
 	GLuint textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT/*GL_CLAMP_TO_EDGE*/);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT/*GL_CLAMP_TO_EDGE*/);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT/*GL_CLAMP_TO_EDGE*/);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT/*GL_CLAMP_TO_EDGE*/);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	
+	//添加纹理附件----深度和模板缓冲纹理
+  	//GLuint depth_stencil_texture;
+  	//glGenTextures(1, &depth_stencil_texture);
+  	//glBindTexture(GL_TEXTURE_2D, depth_stencil_texture);
+  	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+  	//glBindTexture(GL_TEXTURE_2D, 0);
+  	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, depth_stencil_texture, 0);
 
+
+	//渲染缓冲对象附件
 	GLuint rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -127,8 +132,8 @@ int main()
 
 
 	GLuint cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
-	//GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
-	GLuint floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
+	GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+	//GLuint floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
 
 	ourShader.use();
 	ourShader.setInt("texture1", 0);	//每个着色器采样器属于哪个纹理单元
