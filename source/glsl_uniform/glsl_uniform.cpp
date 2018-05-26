@@ -97,6 +97,25 @@ int main()
 	// define the range of the buffer that links to a uniform binding point
 	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
+
+
+	GLuint myUniformBlockIndexRed = glGetUniformBlockIndex(shaderRed.ID, "MyUniform");
+	GLuint myUniformBlockIndexGreen = glGetUniformBlockIndex(shaderGreen.ID, "MyUniform");
+	GLuint myUniformBlockIndexBlue = glGetUniformBlockIndex(shaderBlue.ID, "MyUniform");
+	GLuint myUniformBlockIndexYellow = glGetUniformBlockIndex(shaderYellow.ID, "MyUniform");
+
+	glUniformBlockBinding(shaderRed.ID, myUniformBlockIndexRed, 1);
+	glUniformBlockBinding(shaderGreen.ID, myUniformBlockIndexGreen, 1);
+	glUniformBlockBinding(shaderBlue.ID, myUniformBlockIndexBlue, 1);
+	glUniformBlockBinding(shaderYellow.ID, myUniformBlockIndexYellow, 1);
+
+	GLuint myUniformBuffer;
+	glGenBuffers(1, &myUniformBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, myUniformBuffer);
+	glBufferData(GL_UNIFORM_BUFFER, 1 * sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, myUniformBuffer);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 	// store the projection matrix (we only do this once now) (note: we're not using zoom anymore by changing the FoV)
 	glm::mat4 projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
@@ -132,25 +151,37 @@ int main()
 		shaderRed.use();
 		glm::mat4 model;
 		model = glm::translate(model, glm::vec3(-0.75f, 0.75f, 0.0f)); // move top-left
-		shaderRed.setMat4("model", model);
+		//shaderRed.setMat4("model", model);
+		glBindBuffer(GL_UNIFORM_BUFFER, myUniformBuffer);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// GREEN
 		shaderGreen.use();
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(0.75f, 0.75f, 0.0f)); // move top-right
-		shaderGreen.setMat4("model", model);
+		//shaderGreen.setMat4("model", model);
+		glBindBuffer(GL_UNIFORM_BUFFER, myUniformBuffer);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// YELLOW
 		shaderYellow.use();
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(-0.75f, -0.75f, 0.0f)); // move bottom-left
-		shaderYellow.setMat4("model", model);
+		//shaderYellow.setMat4("model", model);
+		glBindBuffer(GL_UNIFORM_BUFFER, myUniformBuffer);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// BLUE
 		shaderBlue.use();
 		model = glm::mat4();
 		model = glm::translate(model, glm::vec3(0.75f, -0.75f, 0.0f)); // move bottom-right
-		shaderBlue.setMat4("model", model);
+		//shaderBlue.setMat4("model", model);
+		glBindBuffer(GL_UNIFORM_BUFFER, myUniformBuffer);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(model));
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------

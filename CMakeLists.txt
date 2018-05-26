@@ -23,32 +23,37 @@ endif(WIN32)
 set(3RDPART_PATH "${CMAKE_SOURCE_DIR}/3rdparty/${SYSTEM_PLATFORM}")
 
 set(GLFW_PATH "${3RDPART_PATH}/GLFW")
-set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${GLFW_PATH}/include)
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${GLFW_PATH}/lib )
+include_directories(${GLFW_PATH}/include)
+link_directories(${GLFW_PATH}/lib )
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} glfw3)
 
 
 set(LearnOpenGL_PATH "${3RDPART_PATH}/LearnOpenGL")
-set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${LearnOpenGL_PATH}/include)
-set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${LearnOpenGL_PATH}/lib )
+include_directories(${LearnOpenGL_PATH}/include)
+link_directories(${LearnOpenGL_PATH}/lib )
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} assimp)
 
 
-#complie for stb_image lib.
-add_definitions(-DSTB_IMAGE_IMPLEMENTATION)
+set(GLM_PATH "${3RDPART_PATH}/glm")
+include_directories(${GLM_PATH}/include)
 
+
+set(GLAD_PATH "${3RDPART_PATH}/glad")
 set(GLAD_MODULE libglad)
 add_library(${GLAD_MODULE} STATIC "deps/glad.c")
+target_include_directories(${GLAD_MODULE} PRIVATE 
+                                ${GLAD_PATH}/include/glad
+                                ${GLAD_PATH}/include/KHR)
+#target_link_libraries(${GLAD_MODULE} xxxx)
+include_directories(${GLAD_PATH}/include)
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} ${GLAD_MODULE})
 
+
+
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} opengl32 )
-#RelWithDebInfo\STB_IMAGE.lib
-include_directories(${CMAKE_INCLUDE_PATH})
-link_directories(${CMAKE_LIBRARY_PATH})
-
-
 add_compile_options(-std=c++11)
-  
+#complie for stb_image lib.
+add_definitions(-DSTB_IMAGE_IMPLEMENTATION)
 
 set(PROJECTS
     textures
@@ -62,6 +67,7 @@ set(PROJECTS
     face_culling
     framebuffers
     glsl_uniform
+    instancing
 )
 
 
