@@ -49,7 +49,6 @@ include_directories(${GLAD_PATH}/include)
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} ${GLAD_MODULE})
 
 
-
 set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} opengl32 )
 add_compile_options(-std=c++11)
 #complie for stb_image lib.
