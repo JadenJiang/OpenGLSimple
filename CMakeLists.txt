@@ -67,6 +67,7 @@ set(PROJECTS
     framebuffers
     glsl_uniform
     instancing
+    filters
 )
 
 
