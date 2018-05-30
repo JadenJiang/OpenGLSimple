@@ -1,1 +1,1 @@
-const char * logl_root = "E:/github/LearnOpenGL";
+static const char * logl_root = "E:/github/LearnOpenGL";
