@@ -140,11 +140,11 @@ private:
     Shader ourShader;
     GLuint VAO, VBO;
     GLuint floorTexture;
-    float m_motionSpeed = 1.5;
+    float m_motionSpeed = 3;
     float m_motion = 0;
-    float m_angle = 20;
+    float m_angle = 40;
     void drawLoopBefore() {
-        ourShader = Shader(vertexShaderSource, Kernel);
+        ourShader = Shader(vertexShaderSource, Wave);
         floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)");
 
         glGenVertexArrays(1, &VAO);
@@ -162,7 +162,7 @@ private:
         ourShader.use();
         ourShader.setInt("texture", 0);	//每个着色器采样器属于哪个纹理单元
         ourShader.setFloat("angle", m_angle);
-        ourShader.setFloat("strength", 0.01);
+        ourShader.setFloat("strength", 0.003);
     }
 
     void drawLoop() {

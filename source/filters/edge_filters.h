@@ -45,7 +45,6 @@ layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
-out vec2 coords[8];
 
 uniform vec2 samplerSteps;
 uniform float stride;
@@ -58,19 +57,9 @@ void main()
 {
     gl_Position = vec4(aPos, 1.0);
 	TexCoord = (aTexCoord.xy);
-	coords[0] = TexCoord - samplerSteps * stride;
-	coords[1] = TexCoord + vec2(0.0, -samplerSteps.y) * stride;
-	coords[2] = TexCoord + vec2(samplerSteps.x, -samplerSteps.y) * stride;
-
-	coords[3] = TexCoord - vec2(samplerSteps.x, 0.0) * stride;
-	coords[4] = TexCoord + vec2(samplerSteps.x, 0.0) * stride;
-
-	coords[5] = TexCoord + vec2(-samplerSteps.x, samplerSteps.y) * stride;
-	coords[6] = TexCoord + vec2(0.0, samplerSteps.y) * stride;
-	coords[7] = TexCoord + vec2(samplerSteps.x, samplerSteps.y) * stride;
-	
 }
 )";
+
 
 static const char s_fragSobelShader[] = R"(
 #version 330 core
@@ -82,26 +71,51 @@ uniform vec2 samplerSteps;
 uniform float stride;
 uniform float intensity;
 
-varying vec2 coords[8];
-
 void main()
 {
-	vec3 colors[8];
 
-	for(int i = 0; i < 8; ++i)
+    vec2 offsets[9] = vec2[](
+	    vec2(-samplerSteps.x * stride, samplerSteps.y * stride),
+	    vec2(0.0f                    , samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride,  samplerSteps.y * stride),
+	    vec2(-samplerSteps.x * stride, 0.0f),
+	    vec2(0.0f, 0.0f),
+	    vec2(samplerSteps.x * stride,  0.0f),
+	    vec2(-samplerSteps.x * stride, -samplerSteps.y * stride),
+	    vec2(0.0f, -samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride, -samplerSteps.y * stride)
+    );
+
+    vec3 sampleTex[9];
+	for(int i = 0; i < 9; ++i)
 	{
-		colors[i] = texture2D(texture0, coords[i]).rgb;
+		sampleTex[i] = texture2D(texture0, TexCoord + offsets[i]).rgb;
 	}
 
-	vec4 src = texture2D(texture0, TexCoord);
+    float kernel_horizon[9] = float[](
+	    1, 2, 1,
+	    0, 0, 0,
+	    -1, -2, -1
+    );
+    vec3 color_horizon = vec3(0.0);
+    for(int i = 0; i < 9; ++i){
+	    color_horizon += sampleTex[i] * kernel_horizon[i];
+    }
 
-	vec3 h = -colors[0] - 2.0 * colors[1] - colors[2] + colors[5] + 2.0 * colors[6] + colors[7];
-	vec3 v = -colors[0] + colors[2] - 2.0 * colors[3] + 2.0 * colors[4] - colors[5] + colors[7];
+    float kernel_vertical[9] = float[](
+	    -1, 0, 1,
+	    -2, 0, 2,
+	    -1, 0, 1
+    );
+    vec3 color_vertical = vec3(0.0);
+    for(int i = 0; i < 9; ++i){
+        color_vertical += sampleTex[i] * kernel_vertical[i];
+    }
 
-	FragColor = vec4(mix(src.rgb, sqrt(h * h + v * v), intensity), 1.0);
+	vec4 srcColor = texture2D(texture0, TexCoord);
+
+	FragColor = vec4(mix(srcColor.rgb, sqrt(color_horizon * color_horizon + color_vertical * color_vertical), intensity), srcColor.a);
 }
-
-
 )";
 
 
@@ -128,10 +142,8 @@ private:
     GLuint VAO, VBO;
     GLuint floorTexture;
 
-    float stride = 2;
-    float intensity = 1;
-    glm::vec2 norm;
-
+    float stride = 1;
+    float intensity = 0.8;
 
     void drawLoopBefore() {
         glEnable(GL_DEPTH_TEST);
@@ -153,13 +165,9 @@ private:
         glBindVertexArray(0);
 
         ourShader.use();
-        //norm = glm::rotate(glm::vec2(1.0f, 1.0f), 3.14f * 3 / 4);
         ourShader.setFloat("stride", stride);
         ourShader.setFloat("intensity", intensity);
-        norm  = glm::mat2(glm::rotate(glm::mat4(), glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f))) * glm::vec2(1.0f, 0.0f);
-        ourShader.setVec2("norm", norm);
         ourShader.setVec2("samplerSteps", glm::vec2(1.0f / (m_width * 1), 1.0f / (m_height * 1)));
-        
     }
 
     void drawLoop() {

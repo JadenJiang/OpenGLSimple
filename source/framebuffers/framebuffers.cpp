@@ -97,6 +97,10 @@ int main()
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
+
+    //附件是一个内存位置，它能够作为帧缓冲的一个缓冲，可以将它想象为一个图像。
+    //当创建一个附件的时候我们有两个选项：纹理或渲染缓冲对象(Renderbuffer Object)。
+
 	//添加纹理附件-----颜色纹理
 	GLuint textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
@@ -132,7 +136,7 @@ int main()
 
 
 	GLuint cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
-	GLuint floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+	GLuint floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)"); 
 	//GLuint floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
 
 	ourShader.use();
@@ -182,6 +186,13 @@ int main()
 		ourShader.setMat4("model", glm::mat4());
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
+
+        static uint8_t *buffer = new uint8_t[SCR_WIDTH * SCR_HEIGHT * 3];
+        glReadPixels(0, 0, SCR_WIDTH / 2, SCR_HEIGHT / 2, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        static FILE *fd = fopen("../yuv.rgb", "wb");
+        //fseek(fd, 0, SEEK_SET);
+        fwrite(buffer, 3, SCR_WIDTH * SCR_HEIGHT / 4, fd);
+
 
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
