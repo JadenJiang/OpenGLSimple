@@ -68,6 +68,7 @@ set(PROJECTS
     glsl_uniform
     instancing
     filters
+    pixel_buffer_object
 )
 
 
