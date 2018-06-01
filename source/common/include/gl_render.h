@@ -24,12 +24,11 @@ private:
     virtual void drawLoop() { }
     virtual void drawLoopEnd() { }
 
-private:
-
-    GLFWwindow* m_window;
 protected:
-    int m_width;
-    int m_height;
+    GLFWwindow* m_window;
+
+    int m_width_win;
+    int m_height_win;
     glm::mat4 m_view;
     glm::mat4 m_projection;
 
@@ -41,6 +40,7 @@ protected:
     static bool m_firstMouse;
 
 protected:
+    virtual void SetGLFWCallback();
 
     GLuint loadTexture(const char *path);
 

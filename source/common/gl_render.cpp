@@ -4,14 +4,14 @@
 
 GLRender::GLRender() {
     m_window = nullptr;
-    m_width = 1280;
-    m_height = 720;
+    m_width_win = 1280;
+    m_height_win = 720;
 
-	m_width = 900;
-	m_height = 1200;
+    // 	m_width = 900;
+    // 	m_height = 1200;
 
-    m_lastX = m_width / 2.0;
-    m_lastY = m_height / 2.0;
+    m_lastX = m_width_win / 2.0;
+    m_lastY = m_height_win / 2.0;
     m_firstMouse = true;
     m_deltaTime = 0.0f;
     m_lastFrame = 0.0f;
@@ -24,7 +24,7 @@ void GLRender::runDraw() {
     {
         processInput(m_window);
         m_view = m_camera.GetViewMatrix();
-        m_projection = glm::perspective(glm::radians(m_camera.Zoom), (float)m_width / (float)m_height, 0.1f, 100.0f);
+        m_projection = glm::perspective(glm::radians(m_camera.Zoom), (float)m_width_win / (float)m_height_win, 0.1f, 100.0f);
 
         drawLoop();
 
@@ -49,7 +49,7 @@ void GLRender::createWindows() {
 #endif
 
                                                          // glfw window creation
-    m_window = glfwCreateWindow(m_width, m_height, "LearnOpenGL", NULL, NULL);
+    m_window = glfwCreateWindow(m_width_win, m_height_win, "LearnOpenGL", NULL, NULL);
     if (m_window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -57,16 +57,22 @@ void GLRender::createWindows() {
         return;
     }
     glfwMakeContextCurrent(m_window);
-    glfwSetFramebufferSizeCallback(m_window, this->framebuffer_size_callback);
-    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(m_window, this->mouse_callback);
-    glfwSetScrollCallback(m_window, this->scroll_callback);
+
+    SetGLFWCallback();
+
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return;
     }
+}
+
+void GLRender::SetGLFWCallback() {
+    glfwSetFramebufferSizeCallback(m_window, this->framebuffer_size_callback);
+    glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(m_window, this->mouse_callback);
+    glfwSetScrollCallback(m_window, this->scroll_callback);
 }
 
 GLuint GLRender::loadTexture(const char *path) {

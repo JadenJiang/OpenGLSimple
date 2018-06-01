@@ -54,6 +54,13 @@ add_compile_options(-std=c++11)
 #complie for stb_image lib.
 add_definitions(-DSTB_IMAGE_IMPLEMENTATION)
 
+#####build libcommon#####
+set(COMMON_PATH "source/common")
+add_subdirectory(${COMMON_PATH})
+include_directories(${COMMON_PATH}/include)
+set(CMAKE_LIBRARYS ${CMAKE_LIBRARYS} libcommon)
+
+
 set(PROJECTS
     textures
     triangle

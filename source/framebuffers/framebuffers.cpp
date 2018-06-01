@@ -188,10 +188,10 @@ int main()
 		glBindVertexArray(0);
 
         static uint8_t *buffer = new uint8_t[SCR_WIDTH * SCR_HEIGHT * 3];
-        glReadPixels(0, 0, SCR_WIDTH / 2, SCR_HEIGHT / 2, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+        glReadPixels(0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGB, GL_UNSIGNED_BYTE, buffer);
         static FILE *fd = fopen("../yuv.rgb", "wb");
         //fseek(fd, 0, SEEK_SET);
-        fwrite(buffer, 3, SCR_WIDTH * SCR_HEIGHT / 4, fd);
+        fwrite(buffer, 3, SCR_WIDTH * SCR_HEIGHT, fd);
 
 
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture

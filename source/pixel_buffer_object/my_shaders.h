@@ -1,21 +1,13 @@
 #ifndef SHADERS_H_
 #define SHADERS_H_
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-//#include <stb_image.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+// #include <glad/glad.h>
+// #include <GLFW/glfw3.h>
+#include "gl_render.h"
 
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader.h>
-#include <learnopengl/camera.h>
-#include <learnopengl/model.h>
+#undef STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
-#include <iostream>
-
-#define StringBuild(x) #x
 
 static const char vertexShaderSource[] = R"(
 #version 330 core

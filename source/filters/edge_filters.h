@@ -167,7 +167,7 @@ private:
         ourShader.use();
         ourShader.setFloat("stride", stride);
         ourShader.setFloat("intensity", intensity);
-        ourShader.setVec2("samplerSteps", glm::vec2(1.0f / (m_width * 1), 1.0f / (m_height * 1)));
+        ourShader.setVec2("samplerSteps", glm::vec2(1.0f / (m_width_win * 1), 1.0f / (m_height_win * 1)));
     }
 
     void drawLoop() {
