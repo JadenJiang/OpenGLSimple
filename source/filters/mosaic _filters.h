@@ -80,14 +80,30 @@ uniform vec2 mosaicSize;
 void main()
 {
     ivec2 screen_coord = ivec2(TexCoord.x * winSize.x, TexCoord.y * winSize.y);
-    vec2 mosaic_central = vec2(   floor(screen_coord.x / mosaicSize.x) * mosaicSize.x,
+    vec2 mosaic_central;
+	
+	float offsetY = 0;
+	if(mod(floor(screen_coord.x / mosaicSize.x), 2)== 0){
+		mosaic_central = vec2(   floor(screen_coord.x / mosaicSize.x) * mosaicSize.x,
                             floor(screen_coord.y / mosaicSize.y) * mosaicSize.y) + 0.5f * mosaicSize;
+	}
+	else{
+		mosaic_central = vec2(   floor(screen_coord.x / mosaicSize.x) * mosaicSize.x,
+                            floor(screen_coord.y / mosaicSize.y) * mosaicSize.y) + 
+							0.5f * mosaicSize + vec2(0, 0.5f * mosaicSize.y);
+		if((mosaic_central.y - screen_coord.y) > mosaicSize.y * 0.5 ){
+			mosaic_central = vec2(mosaic_central.x, mosaic_central.y - mosaicSize.y);
+		}
+		else if((mosaic_central.y - screen_coord.y) < -mosaicSize.y * 0.5){
+			mosaic_central = vec2(mosaic_central.x, mosaic_central.y + mosaicSize.y);
+		}
+	}
 
     vec2 stMosaic = mosaic_central/winSize;
 
     vec4 finalColor;  
     if( abs(mosaic_central.x - screen_coord.x) <  mosaicSize.x * 0.5 &&
-        abs(mosaic_central.y - screen_coord.y) <  mosaicSize.y * 0.5    ){
+        abs(mosaic_central.y - screen_coord.y) <  mosaicSize.y * 0.5 ){
         finalColor = texture(texture0, stMosaic);
     }
     else{
@@ -111,32 +127,40 @@ uniform vec2 mosaicSize;
 
 void main()
 {
+    const float sqrt3 = sqrt(3);
+	float len_x = mosaicSize.x;
+	float len_y = mosaicSize.x * 0.5 * sqrt3;
     ivec2 screen_coord = ivec2(TexCoord.x * winSize.x, TexCoord.y * winSize.y);
-    vec2 mosaic_central = vec2(   floor(screen_coord.x / mosaicSize.x) * mosaicSize.x,
-                            floor(screen_coord.y / mosaicSize.y) * mosaicSize.y) + 0.5f * mosaicSize;
-
-    vec2 stMosaic = mosaic_central/winSize;
-
-    vec4 finalColor;  
-    if( abs(mosaic_central.x - screen_coord.x) <  mosaicSize.x * 0.5 &&
-        abs(mosaic_central.y - screen_coord.y) <  mosaicSize.y * 0.25 * sqrt(3)){
-        
-        float x = mosaicSize.x * 0.5 - abs(mosaic_central.x - screen_coord.x);
-        float y = mosaicSize.y * 0.25 * sqrt(3) - abs(mosaic_central.y - screen_coord.y);
-
-        if(y - sqrt(3)*x >= 0){
-            finalColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        }
-        else{
-            finalColor = texture(texture0, stMosaic);
-        }
+	
+	int wx = int(screen_coord.x/(1.5 * len_x));
+	int wy = int(screen_coord.y/(len_y));
+    vec2 v1, v2, mosaic_central;
+    
+    if(mod(wx, 2) == mod(wy, 2)){
+        v1 = vec2(wx * len_x * 1.5, wy * len_y);
+        v2 = vec2((wx + 1) * len_x * 1.5, (wy + 1) * len_y);
+          
     }
     else{
-        finalColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        //finalColor = texture(texture0, TexCoord);
-    }
+        v1 = vec2(wx * len_x * 1.5, (wy + 1) * len_y);
+        v2 = vec2((wx + 1) * len_x * 1.5, wy * len_y);
+        FragColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-    FragColor = finalColor;
+    }
+    
+    float s1 = sqrt( pow(v1.x-screen_coord.x, 2) + pow(v1.y-screen_coord.y, 2) );  
+    float s2 = sqrt( pow(v2.x-screen_coord.x, 2) + pow(v2.y-screen_coord.y, 2) );  
+
+    if(s1 < s2){
+        mosaic_central = v1;  
+    }
+    else{
+        mosaic_central = v2;
+    }
+    vec2 stMosaic = mosaic_central/winSize;
+    FragColor = texture(texture0, stMosaic);
+   
+
 }
 )";
 
@@ -161,7 +185,7 @@ private:
     GLuint floorTexture;
     void drawLoopBefore() {
         ourShader = Shader(vertexShaderSource, mosaic_hexagonal);
-        floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)");
+        floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)");
 
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
@@ -178,7 +202,7 @@ private:
         ourShader.use();
         ourShader.setInt("texture0", 0);
         ourShader.setVec2("winSize", glm::vec2(m_width_win, m_height_win)); 
-        ourShader.setVec2("mosaicSize", glm::vec2(10, 10)); 
+        ourShader.setVec2("mosaicSize", glm::vec2(6)); 
     }
 
     void drawLoop() {
@@ -204,6 +228,10 @@ private:
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
     }
+
+	void SetGLFWCallback() override {
+		glfwSetFramebufferSizeCallback(m_window, this->framebuffer_size_callback);
+	}
 };
 
 }

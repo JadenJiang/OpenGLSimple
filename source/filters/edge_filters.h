@@ -113,12 +113,89 @@ void main()
     }
 
 	vec4 srcColor = texture2D(texture0, TexCoord);
-
-	FragColor = vec4(mix(srcColor.rgb, sqrt(color_horizon * color_horizon + color_vertical * color_vertical), intensity), srcColor.a);
+    vec4 SobelColor = vec4(sqrt(color_horizon * color_horizon + color_vertical * color_vertical), 1.0f);
+    FragColor = mix(srcColor, SobelColor, intensity);
+    //vec4 SobelColor = vec4(color_horizon, 1.0f);
+    //FragColor = SobelColor;
 }
 )";
 
 
+static const char relief_filter[] = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 TexCoord;
+
+uniform sampler2D texture0;
+uniform vec2 winSize;
+
+void main()
+{
+    vec4 color = texture(texture0, TexCoord);
+    vec2 upLeftUV = vec2(TexCoord.x - 2.0/winSize.x, TexCoord.y - 2.0/winSize.y);
+    vec4 bkColor = vec4(0.5, 0.5, 0.5, 1.0);
+    vec4 curColor = texture(texture0, TexCoord);
+    vec4 upLeftColor = texture(texture0, upLeftUV);
+    vec4 delColor = curColor - upLeftColor;
+    float h = 0.3 * delColor.r + 0.59 * delColor.g + 0.11 * delColor.b;
+    
+    FragColor = vec4(h) + bkColor;
+
+    //if(gl_FragCoord.x < 640)
+    //    FragColor = vec4(0.1, 0.2, 0.16, 1.0f);
+    //else
+    //    FragColor = vec4(0.1, 0.2, 0.16, 1.0f) * 3;
+}
+)";
+
+
+
+static const char kernel_filter[] = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 TexCoord;
+
+uniform sampler2D texture0;
+uniform vec2 samplerSteps;
+uniform float stride;
+uniform float intensity;
+
+void main()
+{
+
+    vec2 offsets[9] = vec2[](
+	    vec2(-samplerSteps.x * stride, samplerSteps.y * stride),
+	    vec2(0.0f                    , samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride,  samplerSteps.y * stride),
+	    vec2(-samplerSteps.x * stride, 0.0f),
+	    vec2(0.0f, 0.0f),
+	    vec2(samplerSteps.x * stride,  0.0f),
+	    vec2(-samplerSteps.x * stride, -samplerSteps.y * stride),
+	    vec2(0.0f, -samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride, -samplerSteps.y * stride)
+    );
+
+    vec3 sampleTex[9];
+	for(int i = 0; i < 9; ++i)
+	{
+		sampleTex[i] = texture2D(texture0, TexCoord + offsets[i]).rgb;
+	}
+
+    float kernel[9] = float[](
+        1, 1, 1,
+        1,  -8, 1,
+        1, 1, 1
+    );
+    vec3 color = vec3(0.0);
+    for(int i = 0; i < 9; ++i){
+	    color += sampleTex[i] * kernel[i];
+    }
+
+
+    FragColor = vec4(color, 1.0f) + vec4(0.5, 0.5, 0.5, 1.0);
+
+}
+)";
 
 static float planeVertices[] = {
     // positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
@@ -135,6 +212,8 @@ public:
     EdgeFilter() :
         GLRender()
     {
+        //m_width_win = 900;
+        //m_height_win = 1200;
     }
     ~EdgeFilter() = default;
 private:
@@ -150,7 +229,9 @@ private:
 
         //ourShader = Shader(s_vertexShader, s_fragShader);
         ourShader = Shader(s_vertexSobelShader, s_fragSobelShader);
-        floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)");
+        floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+        //floorTexture = loadTexture(R"(F:\videoFile\Yoona.jpg)");
+
 
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
@@ -167,6 +248,7 @@ private:
         ourShader.use();
         ourShader.setFloat("stride", stride);
         ourShader.setFloat("intensity", intensity);
+        ourShader.setVec2("winSize", glm::vec2(m_width_win, m_height_win));
         ourShader.setVec2("samplerSteps", glm::vec2(1.0f / (m_width_win * 1), 1.0f / (m_height_win * 1)));
     }
 

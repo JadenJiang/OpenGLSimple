@@ -7,8 +7,8 @@ GLRender::GLRender() {
     m_width_win = 1280;
     m_height_win = 720;
 
-    // 	m_width = 900;
-    // 	m_height = 1200;
+//     m_width_win = 900;
+//     m_height_win = 1200;
 
     m_lastX = m_width_win / 2.0;
     m_lastY = m_height_win / 2.0;
