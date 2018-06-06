@@ -57,6 +57,12 @@ int main()
 		0.9f, -0.5f, 0.0f,  // right
 		0.45f, 0.5f, 0.0f   // top 
 	};
+    float color[] = {
+        1.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+
 
 	GLuint VAO[2];
 
@@ -66,23 +72,26 @@ int main()
 	glBindVertexArray(VAO[0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle),
-		firstTriangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle) + sizeof(color), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(firstTriangle), firstTriangle);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(firstTriangle), sizeof(color), color);
+    glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
-
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(sizeof(firstTriangle)));
 	glBindVertexArray(0);
+
 
 	glBindVertexArray(VAO[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle) + sizeof(color), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(secondTriangle), secondTriangle);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(secondTriangle), sizeof(color), color);
+    glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-	glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(sizeof(secondTriangle)));
 	glBindVertexArray(0);
-
-
-
-
 	
 	ourShader.use();
 
