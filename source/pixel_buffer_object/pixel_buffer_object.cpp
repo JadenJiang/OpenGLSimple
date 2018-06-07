@@ -11,12 +11,6 @@ public:
     PixelBuffer() = default;
     ~PixelBuffer() = default;
 private:
-    inline static int64_t getSystemTime() {
-        using namespace std::chrono;
-        microseconds ms = duration_cast<microseconds>(system_clock::now().time_since_epoch());
-        auto len = ms.count();
-        return len;
-    }
 
     inline static size_t readRGB(uint8_t *buffer, size_t size) {
         static FILE *fp = fopen(R"(D:\videoFile\720pbunny.rgb24)", "rb");

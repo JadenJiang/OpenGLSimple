@@ -1,9 +1,4 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb_image.h>
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader_s.h>
-#include <iostream>
+#include "gl_render.h"
 
 #define StringBuild(x) #x
 
@@ -30,4 +25,20 @@ void main()
 }
 )";
 
-
+// set up vertex data (and buffer(s)) and configure vertex attributes
+// ------------------------------------------------------------------
+float firstTriangle[] = {
+    -0.9f, -0.5f, 0.0f,  // left
+    -0.0f, -0.5f, 0.0f,  // right
+    -0.45f, 0.5f, 0.0f,  // top
+};
+float secondTriangle[] = {
+    0.0f, -0.5f, 0.0f,  // left
+    0.9f, -0.5f, 0.0f,  // right
+    0.45f, 0.5f, 0.0f   // top
+};
+float color[] = {
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 1.0f,
+};

@@ -13,6 +13,10 @@
 #include <iostream>
 #include <functional>
 
+
+#include <chrono>
+#include <ctime>
+
 class GLRender {
 public:
     GLRender();
@@ -43,6 +47,13 @@ protected:
     virtual void SetGLFWCallback();
 
     GLuint loadTexture(const char *path);
+    int64_t GLRender::getSystemTime() {
+        using namespace std::chrono;
+        microseconds ms = duration_cast<microseconds>(system_clock::now().time_since_epoch());
+        auto len = ms.count();
+        return len;
+    }
+
 
     // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
     // ---------------------------------------------------------------------------------------------------------
@@ -54,6 +65,7 @@ protected:
     // glfw: whenever the window size changed (by OS or user resize) this callback function executes
     // ---------------------------------------------------------------------------------------------
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
 };
 
 #endif // !SHADERS_H_
