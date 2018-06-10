@@ -13,7 +13,7 @@ public:
 private:
 
     inline static size_t readRGB(uint8_t *buffer, size_t size) {
-        static FILE *fp = fopen(R"(D:\videoFile\720pbunny.rgb24)", "rb");
+        static FILE *fp = fopen(R"(F:\videoFile\Apocalypse.rgb)", "rb");
         int ret = fread(buffer, 1, size, fp);
         if (ret < size) {
             rewind(fp);
