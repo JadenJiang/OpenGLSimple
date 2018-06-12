@@ -23,6 +23,7 @@ void GLRender::runDraw() {
     while (!glfwWindowShouldClose(m_window))
     {
         processInput(m_window);
+        KeyEvent(m_window);
         m_view = m_camera.GetViewMatrix();
         m_projection = glm::perspective(glm::radians(m_camera.Zoom), (float)m_width_win / (float)m_height_win, 0.1f, 100.0f);
 
@@ -75,6 +76,8 @@ void GLRender::SetGLFWCallback() {
     glfwSetScrollCallback(m_window, this->scroll_callback);
 }
 
+
+
 GLuint GLRender::loadTexture(const char *path) {
     GLuint textureID = -1;
     glGenTextures(1, &textureID);
@@ -121,12 +124,24 @@ void GLRender::processInput(GLFWwindow *window)
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         m_camera.ProcessKeyboard(FORWARD, m_deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         m_camera.ProcessKeyboard(BACKWARD, m_deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         m_camera.ProcessKeyboard(LEFT, m_deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         m_camera.ProcessKeyboard(RIGHT, m_deltaTime);
+}
+
+
+void GLRender::KeyEvent(GLFWwindow *window) {
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        keyEventCallBack(KEY_UP);
+    else if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        keyEventCallBack(KEY_DOWN);
+    else if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        keyEventCallBack(KEY_RIGHT);
+    else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        keyEventCallBack(KEY_LEFT);
 }
 
 void GLRender::mouse_callback(GLFWwindow* window, double xpos, double ypos) {

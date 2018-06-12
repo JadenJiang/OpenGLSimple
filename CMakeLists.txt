@@ -76,6 +76,7 @@ set(PROJECTS
     instancing
     filters
     pixel_buffer_object
+    geometry_shader
 )
 
 

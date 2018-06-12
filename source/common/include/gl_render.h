@@ -17,16 +17,28 @@
 #include <chrono>
 #include <ctime>
 
+typedef enum KeyType {
+    KEY_UP = GLFW_KEY_UP,
+    KEY_DOWN = GLFW_KEY_DOWN,
+    KEY_LEFT = GLFW_KEY_LEFT,
+    KEY_RIGHT = GLFW_KEY_RIGHT
+}KeyType;
+
 class GLRender {
 public:
     GLRender();
     virtual ~GLRender() = default;
     void runDraw();
+    
 private:
     void createWindows();
+    void KeyEvent(GLFWwindow *window);
+
     virtual void drawLoopBefore() { }
     virtual void drawLoop() { }
     virtual void drawLoopEnd() { }
+    virtual void SetGLFWCallback();
+    virtual void keyEventCallBack(KeyType type) {};
 
 protected:
     GLFWwindow* m_window;
@@ -44,7 +56,6 @@ protected:
     static bool m_firstMouse;
 
 protected:
-    virtual void SetGLFWCallback();
 
     GLuint loadTexture(const char *path);
     int64_t GLRender::getSystemTime() {

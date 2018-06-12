@@ -21,19 +21,17 @@ static const char s_fragShader[] = R"(
 out vec4 FragColor;
 
 in vec2 TexCoord;
-
 uniform sampler2D texture0;
-uniform vec2 samplerSteps;
-uniform float stride;
-uniform float intensity;
-uniform vec2 norm;
+
+uniform float uTolerance;
+
+const vec3 W = vec3( 0.2125, 0.7154, 0.0721 );
 
 void main()
 {
-    vec4 src = texture2D(texture0, TexCoord);
-    vec3 tmpColor = texture2D(texture0, TexCoord + samplerSteps * stride * norm).rgb;
-    tmpColor = abs(src.rgb - tmpColor) * 2.0;
-	FragColor = vec4(mix(src.rgb, tmpColor, intensity), src.a);
+    vec4 irgb = texture2D(texture0, vec2(TexCoord.s, TexCoord.t));
+    float luminance = dot(irgb.rgb, W);
+	FragColor = mix(irgb, vec4(vec3(luminance), 1.0), uTolerance);
 }
 )";
 
@@ -121,30 +119,112 @@ void main()
 )";
 
 
-static const char relief_filter[] = R"(
+static const char emboss_filter[] = R"(
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D texture0;
-uniform vec2 winSize;
+
 
 void main()
 {
-    vec4 color = texture(texture0, TexCoord);
-    vec2 upLeftUV = vec2(TexCoord.x - 2.0/winSize.x, TexCoord.y - 2.0/winSize.y);
-    vec4 bkColor = vec4(0.5, 0.5, 0.5, 1.0);
-    vec4 curColor = texture(texture0, TexCoord);
-    vec4 upLeftColor = texture(texture0, upLeftUV);
-    vec4 delColor = curColor - upLeftColor;
-    float h = 0.3 * delColor.r + 0.59 * delColor.g + 0.11 * delColor.b;
-    
-    FragColor = vec4(h) + bkColor;
+    ivec2 ires = textureSize(texture0, 0 );
+    float ResS = float(ires.s);
+    float ResT = float(ires.t);
 
-    //if(gl_FragCoord.x < 640)
-    //    FragColor = vec4(0.1, 0.2, 0.16, 1.0f);
-    //else
-    //    FragColor = vec4(0.1, 0.2, 0.16, 1.0f) * 3;
+    vec2 stpp = vec2(1.0/ResS, 1.0/ResT);
+    vec3 c00 = texture(texture0, TexCoord).rgb;
+    vec3 cp1p1 = texture(texture0, TexCoord + stpp).rgb;
+    
+    vec3 diffs = c00 - cp1p1;
+    float maxcolor = diffs.r;
+    if(abs(diffs.g) > abs(maxcolor)) 
+        maxcolor = diffs.g;
+    if(abs(diffs.b) > abs(maxcolor)) 
+        maxcolor = diffs.b;
+    
+    float gray = clamp(maxcolor + 0.5, 0, 1);
+    vec3 color = vec3(gray, gray, gray);
+    FragColor = vec4(color, 1);
+
+}
+)";
+
+static const char toom_filter[] = R"(
+#version 330 core
+out vec4 FragColor;
+
+in vec2 TexCoord;
+uniform sampler2D texture0;
+
+vec2 samplerSteps;
+const int stride = 1;
+uniform float uTolerance;
+const float uQuantize = 1000.0f;
+
+void main()
+{
+    ivec2 ires = textureSize(texture0, 0);
+    float ResS = float(ires.s);
+    float ResT = float(ires.t);
+    samplerSteps = vec2(1.0f/ResS, 1.0f/ResT);
+
+
+    vec2 offsets[9] = vec2[](
+	    vec2(-samplerSteps.x * stride, samplerSteps.y * stride),
+	    vec2(0.0f                    , samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride,  samplerSteps.y * stride),
+	    vec2(-samplerSteps.x * stride, 0.0f),
+	    vec2(0.0f, 0.0f),
+	    vec2(samplerSteps.x * stride,  0.0f),
+	    vec2(-samplerSteps.x * stride, -samplerSteps.y * stride),
+	    vec2(0.0f, -samplerSteps.y * stride),
+	    vec2(samplerSteps.x * stride, -samplerSteps.y * stride)
+    );
+    
+    vec3 sampleTex[9];
+    for(int i = 0; i < 9; i++){
+        sampleTex[i] = texture(texture0, TexCoord + offsets[i]).rgb;
+    }
+    
+    float kernel_horizon[9] = float[](
+	    1, 2, 1,
+	    0, 0, 0,
+	    -1, -2, -1
+    );
+    vec3 color_horizon = vec3(0.0);
+    for(int i = 0; i < 9; ++i){
+	    color_horizon += sampleTex[i] * kernel_horizon[i];
+    }
+
+    float kernel_vertical[9] = float[](
+	    -1, 0, 1,
+	    -2, 0, 2,
+	    -1, 0, 1
+    );
+    vec3 color_vertical = vec3(0.0);
+    for(int i = 0; i < 9; ++i){
+        color_vertical += sampleTex[i] * kernel_vertical[i];
+    }    
+
+   
+    const vec3 w = vec3( 0.2125, 0.7154, 0.0721 );
+    float h = dot(color_horizon, w);
+    float v = dot(color_vertical, w);
+    float mag = length(vec2(h, v));
+    
+    if(mag > uTolerance){
+        FragColor = vec4(0, 0, 0, 1);
+    }
+    else{
+        vec3 irgb = texture(texture0, TexCoord).rgb;
+        //irgb.rgb *= uQuantize;
+        //irgb.rgb += vec3(0.5);
+        //ivec3 intrgb = ivec3(irgb.rgb);
+        //irgb.rgb = vec3(intrgb)/uQuantize;
+        FragColor = vec4(irgb.rgb, 1);
+    }
 }
 )";
 
@@ -223,13 +303,14 @@ private:
 
     float stride = 1;
     float intensity = 0.8;
+    float uTolerance = 0.2;
 
     void drawLoopBefore() {
         glEnable(GL_DEPTH_TEST);
 
         //ourShader = Shader(s_vertexShader, s_fragShader);
-        ourShader = Shader(s_vertexSobelShader, s_fragSobelShader);
-        floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)"); 
+        ourShader = Shader(s_vertexSobelShader, s_fragShader);
+        floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)"); 
         //floorTexture = loadTexture(R"(F:\videoFile\Yoona.jpg)");
 
 
@@ -248,7 +329,6 @@ private:
         ourShader.use();
         ourShader.setFloat("stride", stride);
         ourShader.setFloat("intensity", intensity);
-        ourShader.setVec2("winSize", glm::vec2(m_width_win, m_height_win));
         ourShader.setVec2("samplerSteps", glm::vec2(1.0f / (m_width_win * 1), 1.0f / (m_height_win * 1)));
     }
 
@@ -258,6 +338,9 @@ private:
         glClearColor(0.f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        ourShader.use();
+        ourShader.setFloat("uTolerance", uTolerance);
         // floor
         glBindVertexArray(VAO);
         glActiveTexture(GL_TEXTURE0);
@@ -266,10 +349,23 @@ private:
 
         glBindVertexArray(0);
     }
+    void keyEventCallBack(KeyType type) override {
+        if (type == KEY_UP) {
+            uTolerance += 0.003;
+        }
+        else if (type == KEY_DOWN) {
+            uTolerance -= 0.003;
+        }
+        printf("%f\n", uTolerance);
 
+    }
     void drawLoopEnd() {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
+    }
+
+    void SetGLFWCallback() {
+        glfwSetFramebufferSizeCallback(m_window, this->framebuffer_size_callback);
     }
 };
 

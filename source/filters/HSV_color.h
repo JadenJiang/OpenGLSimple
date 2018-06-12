@@ -21,7 +21,7 @@ gl_Position = vec4(aPos, 1.0);
 }
 )";
 
-static const char grayscale[] = R"(
+static const char hsv[] = R"(
 #version 330 core
 
 out vec4 FragColor;
@@ -52,16 +52,16 @@ vec3 convertRGB2HSV(vec3 rgbColor)
         if( r == maxval){
             h = (g - b) / delta;
         }
-        else{
-            if(g == maxval)
-                h = 2.0 + (b - r) / delta;
-            else
-                if( b == maxval)
-                    h = 4.0 + (r - g) / delta;
-            h *= 60;
-            if( h < 0.0)
-                h += 360;
+        else if(g == maxval){
+            h = 2.0 + (b - r) / delta;
         }
+        else if( b == maxval){
+            h = 4.0 + (r - g) / delta;
+        }
+                    
+        h *= 60;
+        if( h < 0.0)
+            h += 360;
         return vec3(h, s, v);
     }      
 }
@@ -130,10 +130,11 @@ private:
     Shader ourShader;
     GLuint VAO, VBO;
     GLuint floorTexture;
+    float  uT = 240;
 
     void drawLoopBefore() {
-        ourShader = Shader(vertexShaderSource, grayscale);
-        floorTexture = loadTexture(R"(F:\videoFile\Lena.jpg)");
+        ourShader = Shader(vertexShaderSource, hsv);
+        floorTexture = loadTexture(R"(D:\videoFile\Lena.jpg)");
 
         glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
@@ -149,7 +150,7 @@ private:
 
         ourShader.use();
         ourShader.setInt("texture", 0);	//每个着色器采样器属于哪个纹理单元
-        ourShader.setFloat("uT", 80);
+        
     }
 
     void drawLoop() {
@@ -158,6 +159,7 @@ private:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ourShader.use();
+        ourShader.setFloat("uT", uT);
 
         // floor
         glBindVertexArray(VAO);
@@ -169,6 +171,16 @@ private:
     void drawLoopEnd() {
         glDeleteVertexArrays(1, &VAO);
         glDeleteBuffers(1, &VBO);
+    }
+
+    void keyEventCallBack(KeyType type) override{
+        if (type == KEY_UP) {
+            uT += 1;
+        }
+        else if (type == KEY_DOWN) {
+            uT -= 1;
+        }
+    
     }
 
     void SetGLFWCallback() {
