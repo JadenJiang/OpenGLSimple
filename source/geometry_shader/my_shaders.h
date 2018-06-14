@@ -12,9 +12,9 @@ static const char vertexShaderSource[] = R"(
 #version 410 core
 void main(void)
 {
-    const vec4 vertices[] = vec4[](vec4( 0.25, -0.25, 0.5, 1.0),
-                                   vec4(-0.25, -0.25, 0.5, 1.0),
-                                   vec4( 0.25,  0.25, 0.5, 1.0));
+    const vec4 vertices[] = vec4[](vec4( 0, 0.5, 0.5, 1.0),
+                                   vec4(-0.5, -0.5, 0.5, 1.0),
+                                   vec4( 0.5, -0.5, 0.5, 1.0));
 
     gl_Position = vertices[gl_VertexID];
 }
@@ -28,10 +28,10 @@ void main(void)
 {
     if (gl_InvocationID == 0)
     {
-        gl_TessLevelInner[0] = 5.0;
-        gl_TessLevelOuter[0] = 5.0;
-        gl_TessLevelOuter[1] = 5.0;
-        gl_TessLevelOuter[2] = 5.0;
+        gl_TessLevelInner[0] = 6;
+        gl_TessLevelOuter[0] = 2.0;
+        gl_TessLevelOuter[1] = 2.0;
+        gl_TessLevelOuter[2] = 2.0;
     }
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 }
@@ -39,13 +39,19 @@ void main(void)
 
 static const char tesShaderSource[] = R"(
 #version 410 core
-layout (triangles, equal_spacing, cw) in;
-
+layout (quads, equal_spacing, cw) in; //fractional_odd_spacing
+out vec4 color;
 void main(void)
 {
-    gl_Position = (gl_TessCoord.x * gl_in[0].gl_Position) +
-                  (gl_TessCoord.y * gl_in[1].gl_Position) +
-                  (gl_TessCoord.z * gl_in[2].gl_Position);
+    float u = gl_TessCoord.x;
+    float omu = 1 - u;
+    float v = gl_TessCoord.y;
+    float omv = 1-v;
+    color = vec4(gl_TessCoord.rgb, 1.0f);
+    gl_Position = omu * omv * gl_in[0].gl_Position + 
+                  u * omv * gl_in[1].gl_Position +
+                  u * v * gl_in[2].gl_Position +
+                  omu * v * gl_in[3].gl_Position;
 }
 )";
 
@@ -53,7 +59,7 @@ const char geometryShaderSource[] = R"(
 #version 410 core
 layout (triangles) in;
 layout (line_strip, max_vertices = 3) out;
-
+out vec4 color;
 void main(void)
 {
     int i;
@@ -61,6 +67,7 @@ void main(void)
     for (i = 0; i < gl_in.length(); i++)
     {
         gl_Position = gl_in[i].gl_Position;
+        color = gl_Position;
         EmitVertex();
     }
 }
@@ -70,11 +77,12 @@ const char fragmentShaderSource[] = R"(
 
 #version 410 core
 out vec4 FragColor;
-in vec2 TexCoord;
-uniform sampler2D texture0;
+
+in vec4 color;
 void main()
 {
-	FragColor = vec4(0.0, 0.8, 1.0, 1.0);
+	//FragColor = vec4(0.0, 0.8, 1.0, 1.0);
+    FragColor = color;
 }
 )";
 

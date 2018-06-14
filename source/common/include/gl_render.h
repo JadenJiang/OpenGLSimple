@@ -21,7 +21,8 @@ typedef enum KeyType {
     KEY_UP = GLFW_KEY_UP,
     KEY_DOWN = GLFW_KEY_DOWN,
     KEY_LEFT = GLFW_KEY_LEFT,
-    KEY_RIGHT = GLFW_KEY_RIGHT
+    KEY_RIGHT = GLFW_KEY_RIGHT,
+    KEY_SPACE = GLFW_KEY_SPACE
 }KeyType;
 
 class GLRender {

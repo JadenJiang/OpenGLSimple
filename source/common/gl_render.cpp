@@ -142,6 +142,8 @@ void GLRender::KeyEvent(GLFWwindow *window) {
         keyEventCallBack(KEY_RIGHT);
     else if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         keyEventCallBack(KEY_LEFT);
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        keyEventCallBack(KEY_SPACE);
 }
 
 void GLRender::mouse_callback(GLFWwindow* window, double xpos, double ypos) {
